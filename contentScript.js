@@ -10,9 +10,19 @@
     }
   });
 
-  const newVideoLoaded = () => {
+  const fetchBookmark = () => {
+    return new Promise((resolve) => {
+      chrome.storage.sync.get([currentVideo], (obj) => {
+        resolve(obj[currentVideo] ? JSON.parse(obj[currentVide]) : []);
+      });
+    });
+  };
+
+  const newVideoLoaded = async () => {
     const bookMarkBtnExists =
       document.getElementsByClassName('bookmark-btn')[0];
+
+    currentVideoBookmark = await fetchBookmark();
     if (!bookMarkBtnExists) {
       const bookmarkBtn = document.createElement('img');
       bookmarkBtn.src = chrome.runtime.getURL('assets/bookmark.png');
@@ -26,13 +36,14 @@
     }
   };
 
-  const addNewBookmarkEventHandler = () => {
+  const addNewBookmarkEventHandler = async () => {
     const currentTime = youtubePlayer.currentTime;
     const newBookmark = {
       time: currentTime,
       desc: 'Bookmark at' + getTime(currentTime),
     };
     console.log(newBookmark);
+    currentVideoBookmark = await fetchBookmark();
     chrome.storage.sync.set({
       [currentVideo]: JSON.stringify(
         [...currentVideoBookmark, newBookmark].sort((a, b) => a.time - b.time)
